@@ -48,6 +48,10 @@ exports.editUser = async (data) => {
 
     const userApp = await editUserApp(data, conditions);
 
+    const valueRole = { idRole: data.idRole, Comment: "Edited" };
+    const conditionRole = { idUser: data.idUser };
+    await editUserRoleApp(valueRole, conditionRole);
+
     return {
         status: 200 ,
         success: true,
@@ -248,6 +252,18 @@ async function getUserBd(data){
     } catch (error) {
         console.log("Error al selecionar el registro.");
         console.error(error);
+    }
+};
+
+// edit user role
+async function editUserRoleApp(values, conditions){
+    try {
+        const query = json2sql.createUpdateQuery("UsersRole", values, conditions);
+        const queryResult = await SqlConnection.executeQuery(query.sql, query.values);
+        return queryResult.results;
+
+    } catch (error) {
+        throw error;
     }
 };
 
