@@ -6,7 +6,7 @@ const configFile = require("../config-apps.json");
 const verifyTokenRole = require("../middleware/verifyTokenRole");
 const usersController = require("../controllers/users.controller");
 
-
+//// USERS
 // new user
 router.post('/', [verifyTokenRole([1,2])], async (req, res) => {
     try {
@@ -93,6 +93,140 @@ router.get('/', [verifyTokenRole([1,2])], async (req, res) => {
         res.status(400).json({
             success: false,
             message: 'An error has occurred when user listed.'
+        });
+    }
+});
+
+
+//// ROLS
+// list all rols
+router.get('/rols', [verifyTokenRole([1,2])], async (req, res) => {
+    const getFilters = Object.keys(req.params).length > 0
+                    ? req.params
+                    : req.query;
+
+    let filters = (getFilters["id"] != undefined && getFilters["id"] > 0)
+                ? {"idRole": getFilters["id"]}
+                : {};
+
+    try {
+        const response = await usersController.getRols(filters);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when rols listed.'
+        });
+    }
+});
+
+// add role
+router.post('/rols', [verifyTokenRole([1,2])], async (req, res) => {
+    try {
+        const { role } = req.body;
+        
+        if(!role) return res.status(401).json({
+            success: false,
+            message: `incomplete fields`
+        });
+
+        const response = await usersController.addRols(role);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when user created.'
+        });
+    }
+});
+
+// list all rols
+router.get('/rolItem', [verifyTokenRole([1,2])], async (req, res) => {
+    const getFilters = Object.keys(req.params).length > 0
+                    ? req.params
+                    : req.query;
+
+    const { id } = getFilters;
+
+    if(!id) return res.status(401).json({
+        success: false,
+        message: 'incomplete fields'
+    });
+
+    try {
+        const response = await usersController.getRolItems(id);
+        const menus = await usersController.getMenus();
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data,
+            menus: menus.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when rols listed.'
+        });
+    }
+});
+
+router.post('/rolItem', [verifyTokenRole([1,2])], async (req, res) => {
+    try {
+        const response = await usersController.addRolItems(req.body);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when rols add.'
+        });
+    }
+});
+
+router.delete('/rolItem', [verifyTokenRole([1,2])], async (req, res) => {
+    const getFilters = Object.keys(req.params).length > 0
+                    ? req.params
+                    : req.query;
+
+    const { id } = getFilters;
+
+    if(!id) return res.status(401).json({
+        success: false,
+        message: 'incomplete fields'
+    });
+
+    try {
+        const response = await usersController.delRolItems(id);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when rols add.'
         });
     }
 });

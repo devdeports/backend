@@ -56,7 +56,7 @@ exports.editUser = async (data) => {
     };
 };
 
-// List users
+// list users
 exports.getUsers = async (filters = {}) => {
     const userApp = await getUserBd(filters);
 
@@ -65,6 +65,84 @@ exports.getUsers = async (filters = {}) => {
         success: true,
         message: "users listed",
         data: userApp
+    };
+};
+
+// list rols
+exports.getRols = async (filters = {}) => {
+    const roleApp = await getRolsBd(filters);
+
+    return {
+        status: 200 ,
+        success: true,
+        message: "rols listed",
+        data: roleApp
+    };
+};
+
+// list rols items
+exports.getRolItems = async (idRole = 0) => {
+    const roleApp = await getRolsItemsBd(idRole);
+
+    return {
+        status: 200 ,
+        success: true,
+        message: "rols items listed",
+        data: roleApp
+    };
+};
+
+exports.getMenus = async () => {
+    const menuApp = await getMenusBd();
+
+    return {
+        status: 200 ,
+        success: true,
+        message: "menus items listed",
+        data: menuApp
+    };
+};
+
+// create rols
+exports.addRols = async (rol) => {
+    const roleApp = await addRoleApp({
+        role: rol,
+        isActive: 1,
+        isDeleted: 0
+    });
+
+    return {
+        status: 200,
+        success: true,
+        message: "Role create successfully.",
+        data: roleApp
+    };
+};
+
+exports.addRolItems = async (data) => {
+    const roleApp = await addRoleItemApp({
+        idRole: data.idRole,
+        idMenu: data.idMenu,
+        isActive: 1,
+        isDeleted: 0
+    });
+
+    return {
+        status: 200,
+        success: true,
+        message: "Role item create successfully.",
+        data: roleApp
+    };
+};
+
+exports.delRolItems = async (id = 0) => {
+    const roleApp = await delRoleItemApp(id);
+
+    return {
+        status: 200,
+        success: true,
+        message: "Role item create successfully.",
+        data: roleApp
     };
 };
 
@@ -173,5 +251,108 @@ async function getUserBd(data){
     }
 };
 
+
+// get rols filters
+async function getRolsBd(data){
+    const columns = { "*": true };
+    const status = { isActive: 1, isDeleted: 0 };
+    const conditions = {...data, ...status};
+    const query = json2sql.createSelectQuery("SysRole", undefined, columns, conditions, undefined, undefined, undefined);
+
+    try {
+        const queryResult = await SqlConnection.executeQuery(query.sql, query.values);
+        return queryResult.results;
+    } catch (error) {
+        console.log("Error al selecionar el registro.");
+        console.error(error);
+    }
+};
+
+async function getRolsItemsBd(idRole){
+    const columns = {
+        "M.*": true,
+        "R.IdItem": true,
+        "R.IdRole": true,
+        "R.IsActive": "rolActive"
+    };
+
+    const conditions = {
+        "R.IdRole": idRole,
+        "(R.IsActive = 1 AND R.IsDeleted = 0)": undefined,
+        "(M.IsActive = 1 AND M.IsDeleted = 0)": undefined
+    };
+
+    const join = {
+        "M" : {
+            $innerJoin: {
+                $table: "SysMenu",
+                $on: { 'R.IdMenu': { $eq: '~~M.IdMenu' } }
+            }
+        }
+    };
+
+    const query = json2sql.createSelectQuery("SysRoleItems", join, columns, conditions, undefined, undefined, undefined);
+    query.sql = query.sql.replace("`SysRoleItems`", "`SysRoleItems` AS `R`");
+    query.sql = query.sql.replace(/`/g, '');
+    query.sql = query.sql.replace(/  /g, ' ');
+
+    try {
+        const queryResult = await SqlConnection.executeQuery(query.sql, query.values);
+        return queryResult.results;
+    } catch (error) {
+        console.log("Error al selecionar el registro.");
+        console.error(error);
+    }
+};
+
+async function getMenusBd(){
+    const columns = { "*": true };
+    const conditions = { isActive: 1, isDeleted: 0 };
+    const query = json2sql.createSelectQuery("SysMenu", undefined, columns, conditions, undefined, undefined, undefined);
+
+    try {
+        const queryResult = await SqlConnection.executeQuery(query.sql, query.values);
+        return queryResult.results;
+    } catch (error) {
+        console.log("Error al selecionar el registro.");
+        console.error(error);
+    }
+};
+
+
+// insert new role
+async function addRoleApp(data){
+    try {
+        const query = json2sql.createInsertQuery("SysRole", data);
+        const queryResult = await SqlConnection.executeQuery(query.sql, query.values);
+        return queryResult.results;
+
+    } catch (error) {
+        throw error;
+    }
+};
+
+async function addRoleItemApp(data){
+    try {
+        const query = json2sql.createInsertQuery("SysRoleItems", data);
+        const queryResult = await SqlConnection.executeQuery(query.sql, query.values);
+        return queryResult.results;
+
+    } catch (error) {
+        throw error;
+    }
+};
+
+async function delRoleItemApp(idItem){
+    const conditions = { idItem };
+    try {
+        const query = json2sql.createDeleteQuery("SysRoleItems", conditions);
+        const queryResult = await SqlConnection.executeQuery(query.sql, query.values);
+        return queryResult.results;
+
+    } catch (error) {
+        throw error;
+    }
+};
 
 //return { status: 200 , success: true, message: "message", data: [] };
