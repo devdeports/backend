@@ -28,21 +28,69 @@ exports.getServices = async (filters = {}) => {
 // srv details
 exports.getServiceDetail = async (idService = 0) => {
     const srvApp = await getFullServiceDetail(idService);
+    let field = {};
 
-console.log(srvApp);
-// traer content segun id y agregar como name en contents
-// organiza objeto de retorno
+    if(srvApp.length > 0){
+        srvApp.forEach((element, index) => {
 
-model.servicesContent;
+            if(index < 1) {
+                field.name = element.Name;
+                field.description = element.Description;
+                field.idRegion = element.IdRegion;
+                field.userId = element.UserId;
+                field.isActive = element.IsActive;
+                field.isDeleted = element.IsDeleted;
+                field.timestamp = element.Timestamp;
+                field.tags = [{
+                    idSrvCat: element.IdSrvCat,
+                    idTag: element.IdTag,
+                    tag: element.Tag,
+                    observation: element.Observation
+                }];
+                field.contents = [{
+                    idSegment: element.IdSegment,
+                    description: element.Description,
+                    order: element.Order,
+                    idCourse: element.IdCourse,
+                    idProduct: element.IdProduct,
+                    idContent: element.IdContent,
+                    isActive: element.CIsActive,
+                    isDeleted: element.CIsDeleted
+                }];
 
-    return { status: 200 , success: true, message: "message", data: [] };
+            } else {
+                const rtag = field.tags.find(row => row.idSrvCat === element.IdSrvCat);
+                if(rtag == undefined){
+                    field.tags.push({
+                        idSrvCat: element.IdSrvCat,
+                        idTag: element.IdTag,
+                        tag: element.Tag,
+                        observation: element.Observation
+                    });
+                }
 
-    // return {
-    //     status: 200 ,
-    //     success: true,
-    //     message: "services listed",
-    //     data: srvApp
-    // };
+                const rcont = field.contents.find(row => row.idSegment === element.IdSegment);
+                if(rcont == undefined){
+                    field.contents.push({
+                        idSegment: element.IdSegment,
+                        description: element.Description,
+                        order: element.Order,
+                        idCourse: element.IdCourse,
+                        idProduct: element.IdProduct,
+                        idContent: element.IdContent,
+                        isActive: element.CIsActive,
+                        isDeleted: element.CIsDeleted
+                    });
+                }
+            }
+        });
+    }
+    return {
+        status: 200 ,
+        success: true,
+        message: "services listed",
+        data: field
+    };
 };
 
 
@@ -218,6 +266,7 @@ async function getTagServiceBd(idService){
 async function getFullServiceDetail(idService){
     const columns = {
         "S.*": true,
+        "SC.Id": "IdSrvCat",
         "T.IdTag": true,
         "T.Tag": true,
         "T.Observation": true,
@@ -235,14 +284,21 @@ async function getFullServiceDetail(idService){
         "S.IdService": idService,
         "S.IsActive": 1,
         "C.IsDeleted": 0,
+        "SC.IsActive": 1,
         "(T.IsActive = 1 AND T.IsDeleted = 0)": undefined,
     };
 
     const join = {
+        "SC" : {
+            $innerJoin: {
+                $table: "SrvServicesCategory",
+                $on: { 'S.IdService': { $eq: '~~SC.IdService' } }
+            }
+        },
         "T" : {
             $innerJoin: {
                 $table: "SrvCategories",
-                $on: { 'S.IdTag': { $eq: '~~T.IdTag' } }
+                $on: { 'SC.IdTag': { $eq: '~~T.IdTag' } }
             }
         },
         "C" : {
@@ -255,8 +311,8 @@ async function getFullServiceDetail(idService){
 
     const sort = {"C.Order": true };
 
-    const query = json2sql.createSelectQuery("SrvServicesCategory", join, columns, conditions, sort, undefined, undefined);
-    query.sql = query.sql.replace("`SrvServicesCategory`", "`SrvServicesCategory` AS `S`");
+    const query = json2sql.createSelectQuery("SrvServices", join, columns, conditions, sort, undefined, undefined);
+    query.sql = query.sql.replace("`SrvServices`", "`SrvServices` AS `S`");
     query.sql = query.sql.replace(/`/g, '');
     query.sql = query.sql.replace(/  /g, ' ');
 

@@ -7,12 +7,19 @@ exports.service = {
     isDeleted: 0
 };
 
+
 exports.servicesContent = {
-    id: 0,
     idService: 0,
-    isActive: 1,
-    tag: [
+    name: "",
+    description: "",
+    idRegion: 0,
+    userId: 0,
+    isActive: 0,
+    isDeleted: 0,
+    timestamp: "",
+    tags: [
         {
+            idSrvCat: 0,
             idTag: 0,
             tag: "",
             observation: ""
@@ -32,6 +39,7 @@ exports.servicesContent = {
         }
     ]
 };
+
 
 exports.categories = {
     tag: "",
