@@ -18,3 +18,4 @@ app.use("/api/index", require('./api/index.service'));
 app.use("/api/auth", require('./api/authentication.service'));
 app.use("/api/users", require('./api/users.service'));
 app.use("/api/services", require('./api/services.service'));
+app.use("/api/courses", require('./api/courses.service'));

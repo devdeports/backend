@@ -2,7 +2,7 @@ exports.service = {
     name: "",
     description: "",
     idRegion: 11001,
-    idUser: 0,
+    userId: 0,
     isActive: 1,
     isDeleted: 0
 };

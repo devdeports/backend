@@ -56,11 +56,113 @@ router.get('/details/:id', [verifyTokenRole([1,2])], async (req, res) => {
     }
 });
 
+router.post('/', [verifyTokenRole([1,2])], async (req, res) => {
+    try {
+        const data = req.body;
+        const response = await servicesController.add(data);
 
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when service created.'
+        });
+    }
+});
+
+router.delete('/', [verifyTokenRole([1,2])], async (req, res) => {
+    const id = req.body.id;
+
+    if(!id) return res.status(401).json({
+        success: false,
+        message: 'incomplete fields'
+    });
+
+    try {
+        const response = await servicesController.del(id);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when rols add.'
+        });
+    }
+});
+
+
+//// SERVICES CONTENT
+router.get('/content/:id', [verifyTokenRole([1,2])], async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        const response = await servicesController.getServiceContent(id);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when service content listed.'
+        });
+    }
+});
+
+router.post('/content', [verifyTokenRole([1,2])], async (req, res) => {
+    try {
+        const data = req.body;
+        const response = await servicesController.addServiceContent(data);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when content created.'
+        });
+    }
+});
+
+router.delete('/content', [verifyTokenRole([1,2])], async (req, res) => {
+    const id = req.body.id;
+
+    try {
+        const response = await servicesController.deleteServiceContent(id);
+
+        res.status(response.status).json({
+            success: response.success,
+            message: response.message,
+            data: response.data
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: 'An error has occurred when service content listed.'
+        });
+    }
+});
 
 
 //// TAGS
-// list all tags
 router.get('/tag', [verifyTokenRole([1,2])], async (req, res) => {
     const getFilters = Object.keys(req.params).length > 0
                     ? req.params
@@ -89,7 +191,6 @@ router.get('/tag', [verifyTokenRole([1,2])], async (req, res) => {
     }
 });
 
-// add tag
 router.post('/tag', [verifyTokenRole([1,2])], async (req, res) => {
     try {
         const data = req.body;
@@ -109,7 +210,6 @@ router.post('/tag', [verifyTokenRole([1,2])], async (req, res) => {
     }
 });
 
-// delete tag
 router.delete('/tag', [verifyTokenRole([1,2])], async (req, res) => {
     const getFilters = Object.keys(req.params).length > 0
                     ? req.params
@@ -138,7 +238,6 @@ router.delete('/tag', [verifyTokenRole([1,2])], async (req, res) => {
         });
     }
 });
-
 
 
 module.exports = router;
